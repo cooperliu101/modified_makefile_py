@@ -124,7 +124,7 @@ def generate_makefile():
     if not getgx().extension_module:
         targets += [('_prof', '-pg -ggdb'), ('_debug', '-g -ggdb')]
     if getgx().msvc:
-        _out = '-out:'
+        _out = '/out:'
         _ext = ''
         targets = [('', '')]
         if not getgx().extension_module:
