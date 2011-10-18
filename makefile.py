@@ -37,21 +37,20 @@ def generate_makefile():
         else: ident += '.so'
 
     makefile = file(getgx().makefile_name, 'w')
-
-    libdir = getgx().libdir.replace(' ','\ ')
+    libdir = getgx().libdir.replace(' ','/ ')
     print >>makefile, 'SHEDSKIN_LIBDIR=%s' % (libdir)
     filenames = []
     mods = getgx().modules.values()
     for mod in mods:
         filename = mod.filename[:-3] # strip .py
-        filename = filename.replace(' ','\ ') # make paths valid
-        filename = filename.replace(libdir,'${SHEDSKIN_LIBDIR}')
+        filename = filename.replace(' ','/ ') # make paths valid
+        filename = filename.replace(libdir,'$(SHEDSKIN_LIBDIR)')
         filenames.append(filename)
 
     cppfiles = [fn+'.cpp' for fn in filenames]
     hppfiles = [fn+'.hpp' for fn in filenames]
     for always in ('re',):
-        repath = connect_paths('${SHEDSKIN_LIBDIR}', always)
+        repath = connect_paths('$(SHEDSKIN_LIBDIR)', always)
         if not repath in filenames:
             cppfiles.append(repath+'.cpp')
             hppfiles.append(repath+'.hpp')
@@ -74,11 +73,9 @@ def generate_makefile():
 
         variable = line[:line.find('=')].strip()
         if variable == 'CCFLAGS':
-            line += ' -I. -I${SHEDSKIN_LIBDIR}'
+            line += ' -I. -I$(SHEDSKIN_LIBDIR)'
             if sys.platform == 'darwin' and os.path.isdir('/usr/local/include'):
                 line += ' -I/usr/local/include' # XXX
-            if sys.platform == 'darwin' and os.path.isdir('/opt/local/include'):
-                line += ' -I/opt/local/include' # XXX
             if not getgx().wrap_around_check: line += ' -D__SS_NOWRAP'
             if not getgx().bounds_checking: line += ' -D__SS_NOBOUNDS'
             if getgx().fast_random: line += ' -D__SS_FASTRANDOM'
@@ -88,21 +85,19 @@ def generate_makefile():
             if getgx().backtrace: line += ' -D__SS_BACKTRACE -rdynamic -fno-inline'
             if getgx().pypy: line += ' -D__SS_PYPY'
             if getgx().extension_module:
-                if getgx().msvc: line += ' /DLL /LIBPATH:%s/libs /LIBPATH:python%s' % (prefix, pyver)
-                elif sys.platform == 'win32': line += ' -I%s/include -D__SS_BIND' % prefix
+                if sys.platform == 'win32': line += ' -I%s/include -D__SS_BIND' % prefix
                 else: line += ' -g -fPIC -D__SS_BIND ' + includes
 
         elif variable == 'LFLAGS':
             if sys.platform == 'darwin' and os.path.isdir('/opt/local/lib'): # XXX
                 line += ' -L/opt/local/lib'
-            if sys.platform == 'darwin' and os.path.isdir('/usr/local/lib'): # XXX
-                line += ' -L/usr/local/lib'
             if getgx().extension_module:
-                if sys.platform == 'win32': line += ' -shared -L%s/libs -lpython%s' % (prefix, pyver)
+                if getgx().msvc: line += ' /dll /libpath:%s/libs ' % prefix #modify for msvc
+                elif sys.platform == 'win32': line += ' -shared -L%s/libs -lpython%s' % (prefix, pyver)
                 elif sys.platform == 'darwin': line += ' -bundle -undefined dynamic_lookup ' + ldflags
                 elif sys.platform == 'sunos5': line += ' -shared -Xlinker ' + ldflags
                 else: line += ' -shared -Xlinker -export-dynamic ' + ldflags
-
+            # the below code I didn't check under msvc (not familiar with them )    
             if 'socket' in [m.ident for m in mods]:
                 if sys.platform == 'win32':
                     line += ' -lws2_32'
@@ -125,14 +120,17 @@ def generate_makefile():
     # executable (normal, debug, profile) or extension module
     _out = '-o '
     _ext=''
-    if getgx().msvc:
-        _out = '/out:'
-        _ext = ''
-        if not getgx().extension_module:
-            _ext = '.exe'
     targets = [('', '')]
     if not getgx().extension_module:
         targets += [('_prof', '-pg -ggdb'), ('_debug', '-g -ggdb')]
+    if getgx().msvc:
+        _out = '-out:'
+        _ext = ''
+        targets = [('', '')]
+        if not getgx().extension_module:
+            _ext = '.exe'
+       
+   
     for suffix, options in targets:
         print >>makefile, ident+suffix+':\t$(CPPFILES) $(HPPFILES)'
         print >>makefile, '\t$(CC) '+options+' $(CCFLAGS) $(CPPFILES) $(LFLAGS) '+_out+ident+suffix+_ext + '\n'
@@ -144,7 +142,9 @@ def generate_makefile():
     print >>makefile, 'clean:'
     targets = [ident+ext]
     if not getgx().extension_module:
-        targets += [ident+'_prof'+ext, ident+'_debug'+ext]
+        if not getgx().msvc:  
+            targets += [ident+'_prof'+ext, ident+'_debug'+ext]
+            
     print >>makefile, '\trm -f %s\n' % ' '.join(targets)
 
     # phony
