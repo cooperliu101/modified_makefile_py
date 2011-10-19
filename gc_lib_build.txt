@@ -1,0 +1,4 @@
+open the Visual Studio command prompt and cd into the directory which hold the gc
+you will see the NT_MAKEFILE under the directory
+nmake -f NT_MAKEFILE nodebug=1 all
+it will generate gc.lib

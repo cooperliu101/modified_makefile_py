@@ -1,0 +1,64 @@
+pcre-8.13
+
+rename the config.h.generic to config.h
+inside the config.h file
+change HAVE_BCOPY 1 to 0£¬HAVE_INTTYPES_H 1 to 0£¬HAVE_STDINT_H 1 to 0
+rename pcre.h.generic to pcre.h
+change pcre_chartables.c.dist to pcre_chartables.c
+cmd:
+
+cl -MD -DHAVE_CONFIG_H dftables.c 
+
+which generate the dftables.exe
+
+run:
+dftables.exe pcre_chartables.c
+
+make a windows bat which contens:
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_chartables.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_compile.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_config.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_dfa_exec.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_exec.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_fullinfo.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_get.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_globals.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_info.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_maketables.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_newline.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_ord2utf8.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_refcount.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_study.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_tables.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_try_flipped.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_ucd.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_valid_utf8.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_version.c
+
+cl -Ox -MD -DHAVE_CONFIG_H -c pcre_xclass.c
+
+lib -out:pcre.lib pcre_chartables.obj pcre_compile.obj pcre_config.obj pcre_dfa_exec.obj pcre_exec.obj pcre_fullinfo.obj pcre_get.obj pcre_globals.obj pcre_info.obj pcre_maketables.obj pcre_newline.obj pcre_ord2utf8.obj pcre_refcount.obj pcre_study.obj pcre_tables.obj pcre_try_flipped.obj pcre_ucd.obj pcre_valid_utf8.obj pcre_version.obj pcre_xclass.obj
+
+
+run the bat from vs command prompt
+the above code generate the release vesion of pcre.lib
+
